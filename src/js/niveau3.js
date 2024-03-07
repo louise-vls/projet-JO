@@ -1,4 +1,15 @@
+import * as fct from "/src/js/fonctions.js";
 
+var player; // désigne le sprite du joueur
+var groupe_plateformes; // contient toutes les plateformes
+var clavier;
+var timer;
+var tempsRestant = 40;
+var score = 0;
+var zone_texte_score;
+var click;
+var mus3;
+var time;
 export default class niveau3 extends Phaser.Scene {
   // constructeur de la classe
   constructor() {
@@ -6,49 +17,199 @@ export default class niveau3 extends Phaser.Scene {
       key: "niveau3" //  ici on précise le nom de la classe en tant qu'identifiant
     });
   }
-  preload() {}
+
+
+
+
+  preload() {
+    this.load.audio('click', 'src/assets/click.mp3');
+    this.load.image("img_plateforme2", "src/assets/platform.png");
+    this.load.audio('time', 'src/assets/time.mp3'); 
+    this.load.image("pano", "src/assets/pano.jpg");
+    this.load.audio('mus3', 'src/assets/musniv.mp3'); 
+
+    this.load.image("Phaser_tuilesdejeu", "src/assets/route.png");
+
+    // chargement de la carte
+    this.load.tilemapTiledJSON("carte", "src/assets/map2.json");
+    this.load.image("exit3", "src/assets/exit3.png");
+  }
 
   create() {
-    this.add.image(400, 300, "img_ciel");
-    this.groupe_plateformes = this.physics.add.staticGroup();
-    this.groupe_plateformes.create(200, 584, "img_plateforme");
-    this.groupe_plateformes.create(600, 584, "img_plateforme");
-    // ajout d'un texte distintcif  du niveau
-    this.add.text(400, 100, "Vous êtes dans le niveau 3", {
-      fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
-      fontSize: "22pt"
+
+    fct.doNothing();
+    fct.doAlsoNothing();
+
+    mus3 = this.sound.add('mus3'); 
+  
+    mus3.play();
+    time = this.sound.add('time'); 
+    time.play({ loop: true })
+    // On ajoute une simple image de fond, le ciel, au centre de la zone affichée (400, 300)
+    // Par défaut le point d'ancrage d'une image est le centre de cette derniere
+    this.add.image(900, 800, "pano");
+    click = this.sound.add('click');
+    // la création d'un groupes permet de gérer simultanément les éléments d'une meme famille
+    //  Le groupe groupe_plateformes contiendra le sol et deux platesformes sur lesquelles sauter
+    // notez le mot clé "staticGroup" : le static indique que ces élements sont fixes : pas de gravite,
+    // ni de possibilité de les pousser.
+
+    // une fois le groupe créé, on va créer les platesformes , le sol, et les ajouter au groupe groupe_plateformes
+
+    // l'image img_plateforme2 fait 400x32. On en met 2 à coté pour faire le sol
+    // la méthode create permet de créer et d'ajouter automatiquement des objets à un groupe
+    // on précise 2 parametres : chaque coordonnées et la texture de l'objet, et "voila!"
+
+
+
+    /****************************
+     *  CREATION DU PERSONNAGE  *
+     ****************************/
+
+    // On créée un nouveeau personnage : player
+    player = this.physics.add.sprite(100, 450, "img_perso");
+
+    //  propriétées physiqyes de l'objet player :
+    player.setBounce(0.2); // on donne un petit coefficient de rebond
+    player.setCollideWorldBounds(true); // le player se cognera contre les bords du monde
+
+    /***************************
+     *  CREATION DES ANIMATIONS *
+     ****************************/
+    // dans cette partie, on crée les animations, à partir des spritesheet
+    // chaque animation est une succession de frame à vitesse de défilement défini
+    // une animation doit avoir un nom. Quand on voudra la jouer sur un sprite, on utilisera la méthode play()
+    // creation de l'animation "anim_tourne_gauche" qui sera jouée sur le player lorsque ce dernier tourne à gauche
+    this.anims.create({
+      key: "anim_tourne_gauche", // key est le nom de l'animation : doit etre unique poru la scene.
+      frames: this.anims.generateFrameNumbers("img_perso", { start: 0, end: 3 }), // on prend toutes les frames de img perso numerotées de 0 à 3
+      frameRate: 10, // vitesse de défilement des frames
+      repeat: -1 // nombre de répétitions de l'animation. -1 = infini
     });
 
-    this.porte_retour = this.physics.add.staticSprite(100, 550, "img_porte3");
+    // creation de l'animation "anim_tourne_face" qui sera jouée sur le player lorsque ce dernier n'avance pas.
+    this.anims.create({
+      key: "anim_face",
+      frames: [{ key: "img_perso", frame: 4 }],
+      frameRate: 20
+    });
 
-    this.player = this.physics.add.sprite(100, 450, "img_perso");
-    this.player.refreshBody();
-    this.player.setBounce(0.2);
-    this.player.setCollideWorldBounds(true);
-    this.clavier = this.input.keyboard.createCursorKeys();
-    this.physics.add.collider(this.player, this.groupe_plateformes);
+    // creation de l'animation "anim_tourne_droite" qui sera jouée sur le player lorsque ce dernier tourne à droite
+    this.anims.create({
+      key: "anim_tourne_droite",
+      frames: this.anims.generateFrameNumbers("img_perso", { start: 5, end: 8 }),
+      frameRate: 10,
+      repeat: -1
+    });
+
+    /***********************
+     *  CREATION DU CLAVIER *
+     ************************/
+    // ceci permet de creer un clavier et de mapper des touches, connaitre l'état des touches
+    clavier = this.input.keyboard.createCursorKeys();
+
+    /*****************************************************
+     *  GESTION DES INTERATIONS ENTRE  GROUPES ET ELEMENTS *
+     ******************************************************/
+
+    //  Collide the player and the groupe_etoiles with the groupe_plateformes
+
+
+    const carteDuNiveau = this.add.tilemap("carte");
+
+    const tileset = carteDuNiveau.addTilesetImage(
+      "tuile_de_Jeu",
+      "Phaser_tuilesdejeu"
+    );
+    const calque_plateformes = carteDuNiveau.createLayer(
+      "calque_plateformes",
+      tileset
+    );
+
+
+    calque_plateformes.setCollisionByProperty({ estSolide: true });
+    this.physics.add.collider(player, calque_plateformes);
+    //calque_plateformes = this.physics.add.staticGroup();
+
+    this.physics.world.setBounds(0, 0, 3200, 1280);
+    //  ajout du champs de la caméra de taille identique à celle du monde
+    this.cameras.main.setBounds(0, 0, 3200, 1280);
+    // ancrage de la caméra sur le joueur
+    this.cameras.main.startFollow(player);
+    this.porte3 = this.physics.add.staticSprite(3100, 600, "exit3");
+
+    this.timerText = this.add.text(player.x - 20, player.y - 400, 'CHRONO: 40', {
+      fontFamily: "Stencil",
+      fontSize: "25pt",
+      fontWeight: 'bold', // mettre en gras
+      color: '#000000'
+    });
+
+    // Démarrez un timer récurrent qui se déclenchera toutes les secondes
+    this.timer = this.time.addEvent({
+      delay: 1000, // 1000ms = 1 seconde
+      callback: this.updateTimer,
+      callbackScope: this,
+      loop: true
+
+    });
+    this.timerText.setScrollFactor(0);
+
   }
+
+  updateTimer() {
+    tempsRestant--; // Décrémentez le temps restant
+    this.timerText.setText('Temps restant: ' + tempsRestant); // Mettez à jour le texte du timer
+
+    // Vérifiez si le temps est écoulé
+    if (tempsRestant === 0) {
+      this.timer.remove(); // Arrêtez le timer
+      // Ajoutez ici le code à exécuter lorsque le temps est écoulé
+      this.gameOver();
+    }
+  }
+  gameOver() {
+    // Arrêtez tous les éléments du jeu, affichez un message de game over, etc.
+    this.scene.start("gameover");
+  }
+
 
   update() {
-    if (this.clavier.left.isDown) {
-      this.player.setVelocityX(-160);
-      this.player.anims.play("anim_tourne_gauche", true);
-    } else if (this.clavier.right.isDown) {
-      this.player.setVelocityX(160);
-      this.player.anims.play("anim_tourne_droite", true);
-    } else {
-      this.player.setVelocityX(0);
-      this.player.anims.play("anim_face");
+    if (clavier.left.isDown) {
+      // enregistrement de la direction : gauche
+      player.direction = 'anim_tourne_gauche';
+      player.setVelocityX(-160);
+      player.anims.play('anim_tourne_gauche', true);
+
     }
-    if (this.clavier.up.isDown && this.player.body.touching.down) {
-      this.player.setVelocityY(-330);
+    else if (clavier.right.isDown) {
+      // enregistrement de la direction : droite
+      player.direction = 'anim_tourne_droite';
+      player.setVelocityX(160);
+      player.anims.play('anim_tourne_droite', true);
+
+    } else {
+      player.setVelocityX(0);
+      player.anims.play("anim_face");
+
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.clavier.space) == true) {
-      if (this.physics.overlap(this.player, this.porte_retour)) {
-        console.log("niveau 3 : retour vers selection");
+    if (clavier.up.isDown && player.body.blocked.down) {
+      player.setVelocityY(-300);
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(clavier.space)) {
+      if (this.physics.overlap(player, this.porte3)) {
+        score += 50;
+        click.play();
+        mus3.stop();
+        time.stop();
+        this.game.config.score += score;
         this.scene.switch("selection");
+
       }
     }
+
   }
-}
+
+}  
