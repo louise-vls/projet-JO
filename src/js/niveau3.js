@@ -154,21 +154,39 @@ export default class niveau3 extends Phaser.Scene {
 
     });
     this.timerText.setScrollFactor(0);
-
+this.resetTimer();
+this.resetScore();
   }
+  
+  resetScore() {
+    score = 0;
+    
+}
 
-  updateTimer() {
-    tempsRestant--; // Décrémentez le temps restant
-    this.timerText.setText('Temps restant: ' + tempsRestant); // Mettez à jour le texte du timer
+  resetTimer() {
+    // Réinitialiser le temps restant à la valeur initiale du timer
+    tempsRestant = 40;
+    // Mettre à jour le texte du timer avec le temps initial
+    this.timerText.setText('Temps restant: ' + tempsRestant);
+}
+
+updateTimer() {
+    // Décrémentez le temps restant
+    tempsRestant--;
+    // Mettez à jour le texte du timer avec le temps restant
+    this.timerText.setText('Temps restant: ' + tempsRestant);
 
     // Vérifiez si le temps est écoulé
-    if (tempsRestant === 0) {
-      this.timer.remove(); // Arrêtez le timer
-      // Ajoutez ici le code à exécuter lorsque le temps est écoulé
-      this.gameOver();
+    if (tempsRestant <= 0) {
+        // Arrêtez le timer
+        this.timer.remove();
+        // Appelez la méthode gameOver
+        this.gameOver();
     }
-  }
+}
   gameOver() {
+    mus3.stop();
+    time.stop();
     // Arrêtez tous les éléments du jeu, affichez un message de game over, etc.
     this.scene.start("gameover");
   }

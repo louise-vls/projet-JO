@@ -265,7 +265,7 @@ preload() {
   fontSize: "25pt",
   fontWeight: 'bold', // mettre en gras
   color: '#000000'  });
- 
+  this.resetScore();
 
   this.physics.add.collider(groupe_notes, this.groupe_plateformes);
 
@@ -299,7 +299,8 @@ preload() {
 
   this.porte_menu = this.physics.add.staticSprite(700, 72, "porte");
 
- 
+  
+  
 
  
 
@@ -310,16 +311,18 @@ preload() {
 
 
 
- 
 
  
 
- 
+  resetScore() {
+    score = 0;
+    zone_texte_score.setText("Score: " + score);
+}
 
   update() {
 
     if (gameOver) {
-
+      mus1.stop();
       this.scene.start("gameover");
 
     }

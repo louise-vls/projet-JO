@@ -39,6 +39,11 @@ export default class selection extends Phaser.Scene {
       frameWidth: 64,
       frameHeight: 96
     });
+    this.load.spritesheet("mika", "src/assets/mika.png", {
+      frameWidth: 64,
+      frameHeight: 96
+    });
+    
     this.load.spritesheet("abdellah", "src/assets/Abdellah.png", {
       frameWidth: 64,
       frameHeight: 96
@@ -143,6 +148,8 @@ this.load.audio('back', 'src/assets/background.mp3');
       player = this.physics.add.sprite(100, 450, "meyer");
     } else if (this.game.config.skin === 4) {
       player = this.physics.add.sprite(100, 450, "darties");
+    } else if (this.game.config.skin === 5) {
+      player = this.physics.add.sprite(100, 450, "mika");
     }
     //  propriétées physiqyes de l'objet player :
     player.setBounce(0.2); // on donne un petit coefficient de rebond
@@ -162,6 +169,8 @@ if (this.game.config.skin === 2) {
     spritesheetName = "meyer"; // Utilisez le spritesheet pour la skin 3 si sélectionnée
 } else if (this.game.config.skin === 4) {
     spritesheetName = "darties"; // Utilisez le spritesheet pour la skin 4 si sélectionnée
+} else if (this.game.config.skin === 5) {
+  spritesheetName = "mika"; // Utilisez le spritesheet pour la skin 4 si sélectionnée
 }
     // Créez les animations en utilisant le spritesheet approprié
     this.anims.create({

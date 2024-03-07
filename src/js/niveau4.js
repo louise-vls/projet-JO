@@ -2,7 +2,7 @@ import * as fct from "/src/js/fonctions.js";
 
 
 var click;
-var score=0;
+var score4=0;
 var zone_texte_score;
 var mus4;
 var time;
@@ -10,7 +10,7 @@ export default class niveau4 extends Phaser.Scene {
     constructor() {
         super({ key: "niveau4" });
         this.selectedCards = [];
-        this.score = 0; // Initialisation du score à 0
+        this.score4 = 0; // Initialisation du score à 0
     }
 
     preload() {
@@ -50,10 +50,10 @@ export default class niveau4 extends Phaser.Scene {
         // Gestionnaire d'événements pour le clic sur la porte exit
         porteExit.on('pointerup', () => {
             click = this.sound.add('click'); 
-    mus4.stop();
-    
+     mus4.stop();
+     this.game.config.score += this.score4;
         // Ajouter le score du niveau au score global du jeu
-        this.game.config.score += this.score;
+        
         
         // Passer à la scène "selection"
         this.scene.switch("selection");
@@ -64,6 +64,7 @@ export default class niveau4 extends Phaser.Scene {
         this.initializeCards();
         this.displayScore(); // Appeler la fonction pour afficher le score
         zone_texte_score = this.add.text(534, 180, "score:0", { fontFamily: "Stencil", fontSize: "40pt", fontWeight: 'bold', color: '#000000' });
+        this.resetScore();
     }
 
    // onExitClick() {
@@ -77,6 +78,12 @@ export default class niveau4 extends Phaser.Scene {
          
     //}
 
+    resetScore() {
+        // Réinitialiser le score à zéro
+        this.score4 = 0;
+        zone_texte_score.setText("Score: " + this.score4);
+    }
+    
     initializeCards() {
         // Initialisation de la grille et des cartes
         const gridSize = { rows: 4, cols: 4 };
@@ -138,8 +145,8 @@ export default class niveau4 extends Phaser.Scene {
         if (card1.frontImage === card2.frontImage) {
             // Si les cartes correspondent, les laisser face visible
             this.selectedCards = [];
-            this.score += 10;
-            zone_texte_score.setText("Score: " + this.score); // Incrémenter le score de 10 points
+            this.score4 += 10;
+            zone_texte_score.setText("Score: " + this.score4); // Incrémenter le score de 10 points
         } else {
             // Si les cartes ne correspondent pas, les retourner après un court délai
             this.time.delayedCall(1000, () => {
@@ -157,8 +164,10 @@ export default class niveau4 extends Phaser.Scene {
         if (!this.scoreText) {
            //this.scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#0000ff' }); // Bleu
         } else {
-            this.scoreText.setText('Score: ' + this.score);
+            this.scoreText.setText('Score: ' + this.score4);
           this.scoreText.setColor('#0000ff'); // Changer la couleur en bleu
         }
     }
+    
+    
 }

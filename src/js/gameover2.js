@@ -1,5 +1,5 @@
 var click;
-
+var win;
 
 export default class gameover2 extends Phaser.Scene {
     constructor() {
@@ -8,6 +8,7 @@ export default class gameover2 extends Phaser.Scene {
     //on charge les images
     preload() {
       this.load.audio('click', 'src/assets/click.mp3'); 
+      this.load.audio('win', 'src/assets/win.mp3'); 
       this.load.image("gagne","src/assets/gagne.png");
       this.load.image("imageBoutonOki","src/assets/oki.png");
     }
@@ -24,6 +25,8 @@ export default class gameover2 extends Phaser.Scene {
         .setOrigin(0)
         .setDepth(0);
         click = this.sound.add('click');
+        win = this.sound.add('win');
+        win.play();
       //on ajoute un bouton de clic, nommé bouton_play
       var bouton_play = this.add.image(400, 500, "imageBoutonOki").setDepth(1);
       this.add.text(400, 400, "Score: " + this.score, { fontFamily: "Stencil",
@@ -49,6 +52,8 @@ export default class gameover2 extends Phaser.Scene {
       //Cas ou la sourris clique sur le bouton play :
       // on lance le niveau 1
       bouton_play.on("pointerup", () => {
+        click.play();
+        win.stop();
         this.game.config.score=0;
         this.scene.start("menu");
         
