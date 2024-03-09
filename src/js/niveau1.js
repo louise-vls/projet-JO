@@ -165,7 +165,7 @@ preload() {
     fct.doNothing();
 
     fct.doAlsoNothing();
-
+    gameOver = false;
     mus1 = this.sound.add('mus1'); 
   
     mus1.play();
